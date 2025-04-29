@@ -118,18 +118,20 @@ class Calculator {
   }
 }
 
-// DOM elements
-const numberButtons = document.querySelectorAll('[data-number]');
-const operationButtons = document.querySelectorAll('[data-operation]');
-const equalsButton = document.getElementById('equals');
-const deleteButton = document.getElementById('delete');
-const clearButton = document.getElementById('clear');
-const decimalButton = document.getElementById('decimal');
-const previousOperandElement = document.querySelector('.previous-operand');
-const currentOperandElement = document.querySelector('.current-operand');
+// Wait for the DOM to fully load before attaching event listeners
+document.addEventListener('DOMContentLoaded', () => {
+  // DOM elements
+  const numberButtons = document.querySelectorAll('[data-number]');
+  const operationButtons = document.querySelectorAll('[data-operation]');
+  const equalsButton = document.getElementById('equals');
+  const deleteButton = document.getElementById('delete');
+  const clearButton = document.getElementById('clear');
+  const decimalButton = document.getElementById('decimal');
+  const previousOperandElement = document.querySelector('.previous-operand');
+  const currentOperandElement = document.querySelector('.current-operand');
 
-// Initialize calculator
-const calculator = new Calculator(previousOperandElement, currentOperandElement);
+  // Initialize calculator
+  const calculator = new Calculator(previousOperandElement, currentOperandElement);
 
 // Event listeners for buttons
 numberButtons.forEach(button => {
@@ -177,4 +179,7 @@ document.addEventListener('keydown', event => {
   if (event.key === '*') calculator.chooseOperation('×');
   if (event.key === '/') calculator.chooseOperation('÷');
   calculator.updateDisplay();
+});
+
+// Close the DOMContentLoaded event listener
 });
