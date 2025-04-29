@@ -1,28 +1,58 @@
-let displayValue = '';
-let firstNumber = null;
-let secondNumber = null;
-let currentOperator = null;
+let currentNumber = '0';
+let prevNumber = '';
+let calculationOperator = '';
 
-const display = document.getElementById('display');
+const numberButtons = document.querySelectorAll('.number');
+numberButtons.forEach(button => {
+    button.addEventListener('click', (event) => {
+        inputNumber(event.target.value);
+        updateScreen(currentNumber);
+    });
+});
 
-function updateDisplay(value) {
-    display.value = value;
-}
+const operatorButtons = document.querySelectorAll('.operator');
+operatorButtons.forEach(button => {
+    button.addEventListener('click', (event) => {
+        inputOperator(event.target.value);
+        updateScreen(currentNumber);
+    });
+});
 
-function add(a, b) {
-    return a + b;
-}
+const equalButton = document.querySelector('.equal-sign');
+equalButton.addEventListener('click', () => {
+    calculate();
+    updateScreen(currentNumber);
+});
 
-function subtract(a, b) {
-    return a - b;
-}
+const clearButton = document.querySelector('.all-clear');
+clearButton.addEventListener('click', () => {
+    clearAll();
+    updateScreen(currentNumber);
+});
 
-function multiply(a, b) {
-    return a * b;
-}
+const updateScreen = (number) => {
+    const calculatorScreen = document.querySelector('.calculator-screen');
+    calculatorScreen.value = number;
+};
 
-function divide(a, b) {
-    if (b === 0) {
-        return "Error: Division by 0";
+const inputNumber = (number) => {
+    if (currentNumber === '0') {
+        currentNumber = number;
+    } else {
+        currentNumber += number;
     }
-    return
+};
+
+const inputOperator = (operator) => {
+    prevNumber = currentNumber;
+    calculationOperator = operator;
+    currentNumber = '';
+};
+
+const calculate = () => {
+    let result;
+    const prev = parseFloat(prevNumber);
+    const current = parseFloat(currentNumber);
+    switch (calculationOperator) {
+        case '+':
+            result = prev + current
