@@ -12,174 +12,165 @@ function multiply(a, b) {
 }
 
 function divide(a, b) {
-  if (b === 0) return null;
-  return a / b;
+  return b === 0 ? null : a / b;
 }
 
 // Function to determine which operation to perform
 function operate(operator, a, b) {
+  a = parseFloat(a);
+  b = parseFloat(b);
+  
   switch (operator) {
-    case '+':
-      return add(a, b);
-    case '-':
-      return subtract(a, b);
-    case '×':
-      return multiply(a, b);
-    case '÷':
-      if (b === 0) return null;
-      return divide(a, b);
-    default:
-      return null;
+    case '+': return add(a, b);
+    case '-': return subtract(a, b);
+    case '×': return multiply(a, b);
+    case '÷': return divide(a, b);
+    default: return null;
   }
 }
 
-// Calculator class to manage the calculator state and operations
-class Calculator {
-  constructor(previousOperandElement, currentOperandElement) {
-    this.previousOperandElement = previousOperandElement;
-    this.currentOperandElement = currentOperandElement;
-    this.clear();
+// Get DOM elements
+const previousOperandElement = document.querySelector('.previous-operand');
+const currentOperandElement = document.querySelector('.current-operand');
+const numberButtons = document.querySelectorAll('[data-number]');
+const operationButtons = document.querySelectorAll('[data-operation]');
+const equalsButton = document.getElementById('equals');
+const clearButton = document.getElementById('clear');
+const deleteButton = document.getElementById('delete');
+const decimalButton = document.getElementById('decimal');
+
+// Calculator state
+let currentOperand = '0';
+let previousOperand = '';
+let operation = undefined;
+let shouldResetScreen = false;
+
+// Update the display
+function updateDisplay() {
+  currentOperandElement.textContent = currentOperand;
+  
+  if (operation != null) {
+    previousOperandElement.textContent = `${previousOperand} ${operation}`;
+  } else {
+    previousOperandElement.textContent = '';
   }
+}
 
-  clear() {
-    this.currentOperand = '0';
-    this.previousOperand = '';
-    this.operation = undefined;
-    this.shouldResetScreen = false;
+// Clear the calculator
+function clear() {
+  currentOperand = '0';
+  previousOperand = '';
+  operation = undefined;
+  shouldResetScreen = false;
+  updateDisplay();
+}
+
+// Delete last digit
+function deleteDigit() {
+  if (shouldResetScreen) return;
+  if (currentOperand === '0') return;
+  
+  currentOperand = currentOperand.toString().slice(0, -1);
+  if (currentOperand === '') currentOperand = '0';
+  updateDisplay();
+}
+
+// Append a number to the display
+function appendNumber(number) {
+  if (shouldResetScreen) {
+    currentOperand = '';
+    shouldResetScreen = false;
   }
-
-  delete() {
-    if (this.shouldResetScreen) return;
-    if (this.currentOperand === '0') return;
-    this.currentOperand = this.currentOperand.toString().slice(0, -1);
-    if (this.currentOperand === '') this.currentOperand = '0';
+  
+  if (number === '.' && currentOperand.includes('.')) return;
+  
+  if (currentOperand === '0' && number !== '.') {
+    currentOperand = number;
+  } else {
+    currentOperand += number;
   }
+  
+  updateDisplay();
+}
 
-  appendNumber(number) {
-    if (this.shouldResetScreen) {
-      this.currentOperand = '';
-      this.shouldResetScreen = false;
-    }
-    if (number === '.' && this.currentOperand.includes('.')) return;
-    if (this.currentOperand === '0' && number !== '.') {
-      this.currentOperand = number;
-    } else {
-      this.currentOperand += number;
-    }
+// Choose operation
+function chooseOperation(op) {
+  if (currentOperand === '0' && previousOperand === '') return;
+  
+  if (previousOperand !== '') {
+    compute();
   }
+  
+  operation = op;
+  previousOperand = currentOperand;
+  shouldResetScreen = true;
+  updateDisplay();
+}
 
-  chooseOperation(operation) {
-    if (this.currentOperand === '0' && this.previousOperand === '') return;
-    
-    if (this.previousOperand !== '') {
-      this.compute();
-    }
-    
-    this.operation = operation;
-    this.previousOperand = this.currentOperand;
-    this.shouldResetScreen = true;
-  }
-
-  compute() {
-    let computation;
-    const prev = parseFloat(this.previousOperand);
-    const current = parseFloat(this.currentOperand);
-    
-    if (isNaN(prev) || isNaN(current)) return;
-    
-    computation = operate(this.operation, prev, current);
-    
-    if (computation === null) {
-      this.currentOperand = 'Error: Division by 0!';
-      this.operation = undefined;
-      this.previousOperand = '';
-      this.shouldResetScreen = true;
-      return;
-    }
-
+// Compute the result
+function compute() {
+  const prev = parseFloat(previousOperand);
+  const current = parseFloat(currentOperand);
+  
+  if (isNaN(prev) || isNaN(current)) return;
+  
+  let result = operate(operation, prev, current);
+  
+  if (result === null) {
+    currentOperand = 'Error: Division by 0!';
+  } else {
     // Round long decimals
-    if (computation.toString().includes('.') && computation.toString().split('.')[1].length > 10) {
-      computation = Math.round(computation * 10000000000) / 10000000000;
+    if (result.toString().includes('.') && result.toString().split('.')[1].length > 10) {
+      result = Math.round(result * 10000000000) / 10000000000;
     }
-    
-    this.currentOperand = computation;
-    this.operation = undefined;
-    this.previousOperand = '';
-    this.shouldResetScreen = true;
+    currentOperand = result.toString();
   }
-
-  updateDisplay() {
-    this.currentOperandElement.textContent = this.currentOperand;
-    if (this.operation != null) {
-      this.previousOperandElement.textContent = `${this.previousOperand} ${this.operation}`;
-    } else {
-      this.previousOperandElement.textContent = '';
-    }
-  }
+  
+  operation = undefined;
+  previousOperand = '';
+  shouldResetScreen = true;
+  updateDisplay();
 }
 
-// Wait for the DOM to fully load before attaching event listeners
-document.addEventListener('DOMContentLoaded', () => {
-  // DOM elements
-  const numberButtons = document.querySelectorAll('[data-number]');
-  const operationButtons = document.querySelectorAll('[data-operation]');
-  const equalsButton = document.getElementById('equals');
-  const deleteButton = document.getElementById('delete');
-  const clearButton = document.getElementById('clear');
-  const decimalButton = document.getElementById('decimal');
-  const previousOperandElement = document.querySelector('.previous-operand');
-  const currentOperandElement = document.querySelector('.current-operand');
-
-  // Initialize calculator
-  const calculator = new Calculator(previousOperandElement, currentOperandElement);
-
-// Event listeners for buttons
+// Add event listeners for number buttons
 numberButtons.forEach(button => {
   button.addEventListener('click', () => {
-    calculator.appendNumber(button.getAttribute('data-number'));
-    calculator.updateDisplay();
+    appendNumber(button.getAttribute('data-number'));
   });
 });
 
+// Add event listeners for operation buttons
 operationButtons.forEach(button => {
   button.addEventListener('click', () => {
-    calculator.chooseOperation(button.getAttribute('data-operation'));
-    calculator.updateDisplay();
+    chooseOperation(button.getAttribute('data-operation'));
   });
 });
 
-equalsButton.addEventListener('click', () => {
-  calculator.compute();
-  calculator.updateDisplay();
-});
+// Add event listener for equals button
+equalsButton.addEventListener('click', compute);
 
-clearButton.addEventListener('click', () => {
-  calculator.clear();
-  calculator.updateDisplay();
-});
+// Add event listener for clear button
+clearButton.addEventListener('click', clear);
 
-deleteButton.addEventListener('click', () => {
-  calculator.delete();
-  calculator.updateDisplay();
-});
+// Add event listener for delete button
+deleteButton.addEventListener('click', deleteDigit);
 
+// Add event listener for decimal button
 decimalButton.addEventListener('click', () => {
-  calculator.appendNumber('.');
-  calculator.updateDisplay();
+  appendNumber('.');
 });
 
-// Keyboard support
+// Add keyboard support
 document.addEventListener('keydown', event => {
-  if (event.key >= 0 && event.key <= 9) calculator.appendNumber(event.key);
-  if (event.key === '.') calculator.appendNumber('.');
-  if (event.key === '=' || event.key === 'Enter') calculator.compute();
-  if (event.key === 'Backspace') calculator.delete();
-  if (event.key === 'Escape') calculator.clear();
-  if (event.key === '+' || event.key === '-') calculator.chooseOperation(event.key);
-  if (event.key === '*') calculator.chooseOperation('×');
-  if (event.key === '/') calculator.chooseOperation('÷');
-  calculator.updateDisplay();
+  if (event.key >= '0' && event.key <= '9') appendNumber(event.key);
+  if (event.key === '.') appendNumber('.');
+  if (event.key === '=' || event.key === 'Enter') compute();
+  if (event.key === 'Backspace') deleteDigit();
+  if (event.key === 'Escape') clear();
+  if (event.key === '+' || event.key === '-') chooseOperation(event.key);
+  if (event.key === '*') chooseOperation('×');
+  if (event.key === '/') chooseOperation('÷');
 });
 
-// Close the DOMContentLoaded event listener
-});
+// Initialize display
+updateDisplay();
